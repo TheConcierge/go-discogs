@@ -117,3 +117,65 @@ func request(path string, params url.Values, resp interface{}) error {
 
 	return json.Unmarshal(body, &resp)
 }
+
+func post(path string, params url.Values, resp interface{}) error {
+	r, err := http.NewRequest("POST", path+"?"+params.Encode(), nil)
+	if err != nil {
+		return err
+	}
+	r.Header = *header
+
+	client := &http.Client{}
+	response, err := client.Do(r)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusCreated {
+		switch response.StatusCode {
+		case http.StatusUnauthorized:
+			return ErrUnauthorized
+		default:
+			return fmt.Errorf("unknown error: %s", response.Status)
+		}
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(body, &resp)
+}
+
+func delete(path string, params url.Values, resp interface{}) error {
+	r, err := http.NewRequest("DELETE", path+"?"+params.Encode(), nil)
+	if err != nil {
+		return err
+	}
+	r.Header = *header
+
+	client := &http.Client{}
+	response, err := client.Do(r)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		switch response.StatusCode {
+		case http.StatusUnauthorized:
+			return ErrUnauthorized
+		default:
+			return fmt.Errorf("unknown error: %s", response.Status)
+		}
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(body, &resp)
+}

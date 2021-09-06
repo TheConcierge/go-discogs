@@ -15,6 +15,12 @@ type CollectionService interface {
 	// Retrieve the user’s collection folders which contain a specified release.
 	// The releaseID must be non-zero.
 	CollectionItemsByRelease(username string, releaseID int) (*CollectionItems, error)
+	// Adds release to a given collection folder, based on folder ID.
+	// The releaseID must be non-zero.
+	AddToCollectionFolder(username string, folderIO int, releaseID int) error
+	// Deletes a specific instance of a release from a folder
+	// The releaseID must be non-zero.
+	DeleteInstanceFromFolder(username string, folderID int, releaseID int, instanceID int) error
 	// Retrieve metadata about a folder in a user’s collection.
 	Folder(username string, folderID int) (*Folder, error)
 }
@@ -132,4 +138,26 @@ func (s *collectionService) CollectionItemsByRelease(username string, releaseID 
 	var items *CollectionItems
 	err := request(s.url+"/"+username+"/collection/releases/"+strconv.Itoa(releaseID), nil, &items)
 	return items, err
+}
+
+func (s *collectionService) AddToCollectionFolder(username string, folderID int, releaseID int) error {
+	if username == "" {
+		return ErrInvalidUsername
+	}
+	if releaseID == 0 {
+		return ErrInvalidReleaseID
+	}
+	err := post(s.url+"/"+username+"/collection/folders/"+strconv.Itoa(folderID)+"releases/"+strconv.Itoa(releaseID), nil, nil)
+	return err
+}
+
+func (s *collectionService) DeleteInstanceFromFolder(username string, folderID int, releaseID int, instanceID int) error {
+	if username == "" {
+		return ErrInvalidUsername
+	}
+	if releaseID == 0 {
+		return ErrInvalidReleaseID
+	}
+	err := delete(s.url+"/"+username+"/collection/folders/"+strconv.Itoa(folderID)+"releases/"+strconv.Itoa(releaseID)+"instances/"+strconv.Itoa(instanceID), nil, nil)
+	return err
 }
